@@ -1,31 +1,27 @@
+// endpoints.go
 package main
 
 import (
-	"fmt"
+	"io"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hey, this is homepage")
-}
+func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	// A very simple health check.
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 
-func productHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hey, this is product")
-}
-
-func articleHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hey, this is article")
+	// In the future we could report back on the status of our DB, or our cache
+	// (e.g. Redis) by performing a simple PING, and include them in the response.
+	io.WriteString(w, `{"alive": true}`)
 }
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", homeHandler)
-	r.HandleFunc("/products", productHandler)
-	r.HandleFunc("/articles", articleHandler)
-	http.Handle("/", r)
-	http.ListenAndServe(":8080", r)
+	r.HandleFunc("/health", HealthCheckHandler)
+
 	log.Fatal(http.ListenAndServe("localhost:8080", r))
 }
